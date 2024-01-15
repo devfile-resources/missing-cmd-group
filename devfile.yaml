@@ -1,0 +1,77 @@
+schemaVersion: 2.1.0
+metadata:
+  name: chapeaux-project
+  displayName: Chapeaux Web Components
+  language: 'javascript'
+components:
+  - name: deno-www
+    container:
+      image: quay.io/chapeaux/deno-che:latest
+      env:
+        - name: DENO_DIR
+          value: .deno
+      memoryLimit: 1G
+      mountSources: true
+      volumeMounts:
+        - name: deno-cache
+          path: .deno
+      endpoints:
+        - name: deno-svc
+          protocol: https
+          exposure: public
+          targetPort: 8080
+  - name: deno-cache
+    volume:
+      size: 1G
+commands:
+  - exec:
+      label: "RUN the web server"
+      component: deno-www
+      workingDir: ${PROJECTS_ROOT}/cpx-components
+      commandLine: "deno task serve"
+      group:
+        kind: run
+        isDefault: true
+    id: serve-app
+  - exec:
+      label: "TEST the components"
+      component: deno-www
+      workingDir: ${PROJECTS_ROOT}/cpx-components
+      commandLine: "deno task test"
+      group:
+        kind: test
+    id: test-cpx
+  - exec:
+      label: "TEST the components and WATCH for changes"
+      component: deno-www
+      workingDir: ${PROJECTS_ROOT}/cpx-components
+      commandLine: "deno task test:watch"
+      hotReloadCapable: true
+      group:
+        kind: test
+    id: test-watch
+  - exec:
+      label: "BUILD changed component scripts"
+      component: deno-www
+      workingDir: ${PROJECTS_ROOT}/cpx-components
+      commandLine: "deno task build"
+      group:
+        kind: build
+    id: build-scripts
+  - exec:
+      label: "BUILD component scripts and WATCH for changes"
+      component: deno-www
+      workingDir: ${PROJECTS_ROOT}/cpx-components
+      commandLine: "deno task build:watch"
+      hotReloadCapable: true
+      group:
+        kind: build
+    id: build-watch
+  - exec:
+      label: "FORMAT component scripts"
+      component: deno-www
+      workingDir: ${PROJECTS_ROOT}/cpx-components
+      commandLine: "deno task format"
+      group:
+        kind: build
+    id: fmt-cpx
